@@ -86,6 +86,27 @@
     </div>
     <p style="margin-top: 2rem; font-size: 11px; color: #ccc;">智能膳食监测系统 v3.0 | 阿里通义千问驱动</p>
 </div>
+<script>
+    // 定义一个定时器，每 3 秒 (3000毫秒) 执行一次
+    setInterval(function() {
+        fetch('/api/check-new-record') // 调用刚才写的后端接口
+            .then(response => response.json())
+            .then(data => {
+                if (data.hasNew) {
+                    // 如果发现了新记录，页面立刻显示“识别成功”并自动跳转！
+                    console.log("检测到硬件端新记录！正在跳转...");
 
+                    // 弹出个小提示（可选，增加仪式感）
+                    alert("📸 收到来自眼镜的拍摄请求，正在加载 AI 分析报告...");
+
+                    // 直接跳转到历史页（或者是你想展示结果的页面）
+                    // 理想情况下，你可以跳转到一个特定的结果页：window.location.href = "/result?id=" + data.recordId;
+                    // 现在最稳妥的做法是跳到足迹页看最新的一条：
+                    window.location.href = "/history";
+                }
+            })
+            .catch(err => console.log("轮询中..."));
+    }, 3000);
+</script>
 </body>
 </html>

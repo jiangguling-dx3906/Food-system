@@ -80,7 +80,37 @@ public class FoodController {
 
         return "index";
     }
+    /**
+     * 专门给前端轮询用的接口：检查最近是否有新识别记录
+     */
+    @GetMapping("/api/check-new-record")
+    @org.springframework.web.bind.annotation.ResponseBody
+    public Map<String, Object> checkNewRecord(HttpSession session) {
+        Map<String, Object> res = new HashMap<>();
+        String user = (String) session.getAttribute("user");
 
+        if (user == null) {
+            res.put("hasNew", false);
+            return res;
+        }
+
+        try {
+            // 查询该用户在过去 10 秒内产生的最新的那条记录 ID
+            // 注意：NOW() - INTERVAL 10 SECOND 是 MySQL 语法，代表过去 10 秒
+            String sql = "SELECT id FROM food_records WHERE username = ? AND create_time > NOW() - INTERVAL 10 SECOND ORDER BY id DESC LIMIT 1";
+            List<Map<String, Object>> list = jdbcTemplate.queryForList(sql, user);
+
+            if (!list.isEmpty()) {
+                res.put("hasNew", true);
+                res.put("recordId", list.get(0).get("id")); // 告诉前端新纪录的 ID
+            } else {
+                res.put("hasNew", false);
+            }
+        } catch (Exception e) {
+            res.put("hasNew", false);
+        }
+        return res;
+    }
     @GetMapping("/history")
     public String viewHistory(HttpSession session, Model model) {
         String user = (String) session.getAttribute("user");
@@ -133,7 +163,7 @@ public class FoodController {
         model.addAttribute("protein", result.get("protein"));
         model.addAttribute("fat", result.get("fat"));
         model.addAttribute("carbs", result.get("carbs"));
-
+        model.addAttribute("imageUrl", result.get("imageUrl"));
         return "result";
     }
     @PostMapping("/api/user/toggle-target")
