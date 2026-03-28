@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的饮食历史 - 智能膳食系统</title>
+    <!-- 引入 Chart.js 用于绘制趋势图 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-green: #2ecc71;
+            --calorie-red: #e53e3e;
+            --bg-color: #f4f7f6;
+        }
+
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0; padding: 20px;
+            color: #333;
+        }
+
+        .container { max-width: 600px; margin: 0 auto; }
+
+        .header {
+            display: flex; justify-content: space-between;
+            align-items: center; margin-bottom: 25px;
+        }
+
+        /* 趋势图表卡片 */
+        .chart-card {
+            background: white; border-radius: 25px; padding: 20px;
+            margin-bottom: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        }
+
+        /* 历史记录卡片 */
+        .record-card {
+            background: white; border-radius: 20px; padding: 15px;
+            margin-bottom: 15px; display: flex; align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03); position: relative;
+            transition: 0.3s;
+        }
+        .record-card:hover { transform: scale(1.01); }
+
+        .food-img {
+            width: 85px; height: 85px; border-radius: 15px;
+            object-fit: cover; margin-right: 15px; background: #f1f5f9;
+        }
+
+        .info { flex: 1; }
+        .food-name { font-size: 18px; font-weight: bold; color: #2d3748; margin: 0; }
+        .meta { font-size: 12px; color: #a0aec0; margin-top: 4px; }
+
+        .nutri-tag {
+            margin-top: 8px; font-size: 11px; color: #718096;
+            background: #f7fafc; padding: 2px 8px; border-radius: 5px;
+            display: inline-block;
+        }
+
+        .cal-badge {
+            background: #fff5f5; color: var(--calorie-red);
+            padding: 8px 12px; border-radius: 12px;
+            font-weight: 800; text-align: center; min-width: 65px;
+        }
+
+        .delete-btn {
+            position: absolute; top: 10px; right: 10px;
+            color: #d1d8e0; text-decoration: none; font-size: 20px;
+        }
+        .delete-btn:hover { color: #ff4d4f; }
+
+        .btn-home {
+            background: var(--primary-green); color: white;
+            text-decoration: none; padding: 10px 22px;
+            border-radius: 50px; font-size: 14px; font-weight: bold;
+            box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
+        }
+
+        .empty-state { text-align: center; color: #a0aec0; margin-top: 80px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2 style="color: #2e7d32; margin:0;">📊 膳食趋势分析</h2>
+        <a href="/" class="btn-home">回首页拍照</a>
+    </div>
+
+    <!-- 1. 七天热量波动图 -->
+    <div class="chart-card">
+        <h4 style="margin: 0 0 15px 0; color: #4a5568; font-size: 14px;">近 7 日热量摄入波动</h4>
+        <canvas id="dietChart" height="160"></canvas>
+    </div>
+
+    <h3 style="color: #4a5568; font-size: 16px; margin-bottom: 15px; padding-left: 5px;">📜 饮食历史足迹</h3>
+
+    <!-- 2. 饮食列表循环 -->
+    <div th:each="record : ${records}" class="record-card">
+        <!-- 删除按钮 -->
+        <a th:href="@{'/delete-record/' + ${record.id}}" class="delete-btn" onclick="return confirm('确定要删除吗？')">×</a>
+
+        <!-- 图片展示（带空值处理） -->
+        <img th:src="${record.image_url != null ? record.image_url : 'https://via.placeholder.com/100'}" class="food-img" alt="food">
+
+        <div class="info">
+            <p class="food-name" th:text="${record.food_name}">食物名称</p>
+            <div class="meta">
+                📅 <span th:text="${#temporals.format(record.create_time, 'MM-dd HH:mm')}">3-24 12:00</span>
+                · ⚖️ <span th:text="${record.estimated_weight}">0</span>g
+            </div>
+            <div class="nutri-tag">
+                蛋: [[${record.protein}]]g | 脂: [[${record.fat}]]g | 碳: [[${record.carbs}]]g
+            </div>
+        </div>
+
+        <div class="cal-badge">
+            <div th:text="${record.total_calorie}">0</div>
+            <div style="font-size: 10px; font-weight: normal;">Kcal</div>
+        </div>
+    </div>
+
+    <!-- 3. 无数据提示 -->
+    <div th:if="${#lists.isEmpty(records)}" class="empty-state">
+        <div style="font-size: 60px; margin-bottom: 10px;">🥗</div>
+        <p>还没有识别记录，快去开启健康之旅吧！</p>
+    </div>
+</div>
+
+<!-- 3. 图表渲染脚本 -->
+<script th:inline="javascript">
+    (function() {
+        const ctx = document.getElementById('dietChart').getContext('2d');
+
+        // 【关键修复】：使用带注释的变量获取方式，消除 IDEA 错误
+        const todayConsumed = /*[[${consumed != null ? consumed : 0}]]*/ 0;
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['3.19', '3.20', '3.21', '3.22', '3.23', '3.24', '今日'],
+                datasets: [{
+                    data: [1850, 2100, 1600, 1950, 2300, 1800, todayConsumed],
+                    borderColor: '#2ecc71',
+                    backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#2ecc71',
+                    pointBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#f0f0f0' },
+                        ticks: { color: '#94a3b8', font: { size: 10 } }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#94a3b8', font: { size: 10 } }
+                    }
+                }
+            }
+        });
+    })();
+</script>
+</body>
+</html>

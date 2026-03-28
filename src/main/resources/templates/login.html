@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>登录 - 智能膳食系统</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f0f7f2; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-card { background: white; padding: 3rem; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); width: 320px; text-align: center; }
+        h1 { color: #2ecc71; margin-bottom: 2rem; }
+        input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #2ecc71; color: white; border: none; border-radius: 50px; cursor: pointer; font-size: 16px; margin-top: 10px; }
+        .switch-btn { color: #888; font-size: 13px; margin-top: 15px; cursor: pointer; text-decoration: underline; }
+    </style>
+</head>
+<body>
+<div class="login-card">
+    <h1>🥗 欢迎使用</h1>
+    <form id="authForm" action="/login" method="post">
+        <input type="text" name="username" placeholder="用户名" required>
+        <input type="password" name="password" placeholder="密码" required>
+        <p th:if="${error}" th:text="${error}" style="color: red; font-size: 12px;"></p>
+        <p th:if="${msg}" th:text="${msg}" style="color: green; font-size: 12px;"></p>
+        <button type="submit" id="mainBtn">立即登录</button>
+    </form>
+    <div class="switch-btn" onclick="toggleMode()">没有账号？去注册</div>
+</div>
+
+<script>
+    function toggleMode() {
+        const form = document.getElementById('authForm');
+        const btn = document.getElementById('mainBtn');
+        const switchBtn = document.querySelector('.switch-btn');
+        if (form.action.endsWith('/login')) {
+            form.action = '/register';
+            btn.innerText = '立即注册';
+            switchBtn.innerText = '已有账号？去登录';
+        } else {
+            form.action = '/login';
+            btn.innerText = '立即登录';
+            switchBtn.innerText = '没有账号？去注册';
+        }
+    }
+</script>
+</body>
+</html>

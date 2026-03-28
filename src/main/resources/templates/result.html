@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 营养分析报告</title>
+    <style>
+        :root { --primary-green: #2ecc71; --ai-blue: #00a8ff; --calorie-red: #e53e3e; --bg-color: #f4f7f6; }
+        body { font-family: 'PingFang SC', sans-serif; background-color: var(--bg-color); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        .card { background: white; padding: 2.5rem; border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); width: 100%; max-width: 450px; text-align: center; position: relative; overflow: hidden; }
+        .card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 8px; background: linear-gradient(90deg, var(--primary-green), var(--ai-blue)); }
+        .card.not-food-theme::before { background: #f39c12; }
+
+        .icon-circle { width: 70px; height: 70px; background: #f0fdf4; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 1rem; font-size: 35px; }
+        .dish-name { font-size: 26px; color: #333; font-weight: bold; margin-bottom: 1rem; display: block; }
+
+        /* 热量汇总区 */
+        .summary-box { background: #fff5f5; border: 1px solid #feb2b2; padding: 15px; border-radius: 20px; margin-bottom: 1.5rem; }
+        .total-cal { font-size: 32px; color: var(--calorie-red); font-weight: 800; }
+        .weight-hint { font-size: 13px; color: #999; margin-bottom: 5px; }
+
+        /* 营养网格 */
+        .nutrition-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 1.5rem; }
+        .nutri-item { background: #f8fafc; padding: 10px; border-radius: 12px; border: 1px solid #edf2f7; }
+        .nutri-label { font-size: 11px; color: #94a3b8; margin-bottom: 4px; }
+        .nutri-value { font-size: 15px; color: #475569; font-weight: bold; }
+
+        /* 建议板块 */
+        .advice-box { background: #f0f9ff; border-left: 5px solid var(--ai-blue); padding: 15px; border-radius: 10px; text-align: left; font-size: 14px; line-height: 1.6; color: #334155; }
+
+        .btn-group { margin-top: 2rem; display: flex; gap: 10px; }
+        .btn { flex: 1; text-decoration: none; padding: 12px; border-radius: 50px; font-size: 14px; transition: 0.3s; }
+        .btn-primary { background: var(--primary-green); color: white; }
+        .btn-secondary { background: #f1f5f9; color: #64748b; }
+    </style>
+</head>
+<body>
+<div class="card" th:classappend="${isFood ? '' : 'not-food-theme'}">
+    <div class="icon-circle" th:text="${isFood ? '🥗' : '🧐'}"></div>
+    <h1 th:text="${isFood ? '营养精算分析' : 'AI 特别观察'}">标题</h1>
+    <span class="dish-name" th:text="${dishName}">食物名</span>
+
+    <!-- 食物核心数据区 -->
+    <div th:if="${isFood}">
+        <div class="weight-hint">AI 估算分量：<span th:text="${weight}">0</span>g</div>
+        <div class="summary-box">
+            <div class="total-cal" th:text="${totalCal}">0</div>
+            <div style="color:var(--calorie-red); font-size:12px; font-weight:bold;">预计摄入总热量 (Kcal)</div>
+        </div>
+
+        <div class="nutrition-grid">
+            <div class="nutri-item"><div class="nutri-label">蛋白质</div><div class="nutri-value"><span th:text="${protein}">0</span>g</div></div>
+            <div class="nutri-item"><div class="nutri-label">脂肪</div><div class="nutri-value"><span th:text="${fat}">0</span>g</div></div>
+            <div class="nutri-item"><div class="nutri-label">碳水</div><div class="nutri-value"><span th:text="${carbs}">0</span>g</div></div>
+        </div>
+    </div>
+
+    <!-- AI 建议区 -->
+    <div class="advice-box">
+        <strong style="color:var(--ai-blue)" th:text="${isFood ? '🤖 营养师建议：' : '💬 AI 吐槽：'}">建议：</strong>
+        <p style="margin:5px 0 0 0" th:text="${advice}">建议内容...</p>
+    </div>
+
+    <div class="btn-group">
+        <a href="/" class="btn btn-primary">继续识别</a>
+        <a href="/history" class="btn btn-secondary">查看足迹</a>
+    </div>
+</div>
+</body>
+</html>

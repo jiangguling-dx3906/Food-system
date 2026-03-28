@@ -1,0 +1,14 @@
+### 模拟硬件眼镜上传图片（测试接口）
+POST http://123.57.5.6:8080/api/identify/device
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="username"
+
+magnolia
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="eye_test.jpg"
+Content-Type: image/jpeg
+
+< C:/Users/24104/Pictures/Camera Roll/新建文件夹/111.jpg
+--WebAppBoundary--

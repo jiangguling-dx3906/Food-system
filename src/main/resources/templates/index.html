@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能膳食监测系统 - 首页</title>
+    <style>
+        :root { --primary-green: #2ecc71; --dark-green: #27ae60; --bg-color: #f8fafb; }
+        body { font-family: 'PingFang SC', sans-serif; background-color: var(--bg-color); margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+
+        .nav-bar { position: absolute; top: 0; left: 0; right: 0; padding: 20px 40px; display: flex; justify-content: flex-end; align-items: center; gap: 20px; }
+        .nav-link { text-decoration: none; color: #666; font-size: 14px; font-weight: 500; transition: 0.3s; }
+        .nav-link:hover { color: var(--primary-green); }
+        .logout-btn { color: #ff4757; }
+
+        .container { width: 90%; max-width: 420px; text-align: center; }
+
+        /* 每日目标展示区 */
+        .goal-card { background: white; border-radius: 24px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 25px; text-align: left; }
+        .goal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .progress-container { height: 12px; background: #edf2f7; border-radius: 10px; overflow: hidden; margin: 10px 0; }
+        .progress-bar { height: 100%; background: linear-gradient(90deg, #2ecc71, #3498db); border-radius: 10px; transition: width 0.8s ease-in-out; }
+        .stat-line { display: flex; justify-content: space-between; font-size: 13px; color: #718096; }
+
+        /* 上传卡片 */
+        .upload-card { background: white; padding: 2.5rem; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .icon { font-size: 60px; margin-bottom: 1rem; display: block; }
+        h1 { color: #2d3748; font-size: 24px; margin-bottom: 0.5rem; }
+        p.desc { color: #a0aec0; font-size: 14px; margin-bottom: 2rem; }
+
+        input[type="file"] { display: block; width: 100%; border: 2px dashed #cbd5e0; padding: 15px; border-radius: 15px; box-sizing: border-box; cursor: pointer; margin-bottom: 1.5rem; }
+        button.submit-btn { background-color: var(--primary-green); color: white; border: none; padding: 1rem; font-size: 16px; font-weight: bold; border-radius: 50px; cursor: pointer; transition: 0.3s; width: 100%; box-shadow: 0 4px 15px rgba(46, 204, 113, 0.2); }
+        button.submit-btn:hover { background-color: var(--dark-green); transform: translateY(-2px); }
+
+        button.config-btn { background: #edf2f7; color: #4a5568; border: none; padding: 6px 15px; border-radius: 50px; cursor: pointer; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+<div class="nav-bar">
+    <a href="/history" class="nav-link" style="color:var(--primary-green); font-weight:bold;">我的足迹</a>
+    <a href="/logout" class="nav-link logout-btn" onclick="return confirm('确定退出吗？')">退出</a>
+</div>
+
+<div class="container">
+    <!-- 每日热量目标模块 -->
+    <div class="goal-card">
+        <div class="goal-header">
+            <span style="font-weight:bold; color:#4a5568;">📅 每日热量预算</span>
+            <!-- 切换开关按钮 -->
+            <form action="/api/user/toggle-target" method="post">
+                <button type="submit" class="config-btn" th:text="${useTarget == 1 ? '点击关闭' : '点击开启'}">开启</button>
+            </form>
+        </div>
+
+        <!-- 仅在开启时显示内容 -->
+        <div th:if="${useTarget == 1}">
+            <div class="stat-line">
+                <span>今日已摄入: <b th:text="${consumed}">0</b> Kcal</span>
+                <span>目标: <b th:text="${targetCal}">2000</b></span>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar" th:style="'width: ' + ${percent} + '%'"></div>
+            </div>
+            <div class="stat-line" style="justify-content: center; margin-top: 5px;">
+                <span th:if="${remaining > 0}">还可以吃 <b th:text="${remaining}" style="color:var(--primary-green);">800</b> Kcal</span>
+                <span th:if="${remaining <= 0}" style="color:#ff4757; font-weight:bold;">热量已超标！</span>
+            </div>
+        </div>
+
+        <div th:if="${useTarget != 1}" style="text-align: center; color: #a0aec0; font-size: 13px; padding: 10px 0;">
+            开启“热量预算”，让 AI 帮你管理体形
+        </div>
+    </div>
+
+    <!-- 识别上传模块 -->
+    <div class="upload-card">
+        <span class="icon">📸</span>
+        <h1>眼镜视角识别</h1>
+        <p class="desc">实时分析每一餐的营养与健康</p>
+
+        <form action="/api/identify/web" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" accept="image/*" required>
+            <button type="submit" class="submit-btn">开始 AI 深度分析</button>
+        </form>
+    </div>
+    <p style="margin-top: 2rem; font-size: 11px; color: #ccc;">智能膳食监测系统 v3.0 | 阿里通义千问驱动</p>
+</div>
+
+</body>
+</html>
